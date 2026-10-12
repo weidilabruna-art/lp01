@@ -4293,38 +4293,22 @@
         }
 
         let phone = phoneInput.value.trim();
-        try {
-          // v25: formatador carregado por loadUtils; espera no máximo 3s pra não travar o envio.
-          if (iti && iti.promise) await Promise.race([iti.promise.catch(() => {}), new Promise((r) => setTimeout(r, 3000))]);
-          if (iti && window.intlTelInput.utils && typeof iti.isValidNumber === 'function') {
-            if (!iti.isValidNumber()) {
-              errorEl.textContent = 'Telefone inválido. Confira o número.';
-              errorEl.classList.add('is-on');
-              phoneInput.focus();
-              submitBtn.disabled = false;
-              return;
-            }
-            phone = iti.getNumber(); // E.164, ex: +5511999990000
-          } else {
-            // Sem formatador (rede lenta ou bloqueio): confere ao menos o tamanho.
-            const dd = phone.replace(/\D/g, '').replace(/^0+/, '');
-            let pais = 'br';
-            try { pais = (iti && iti.getSelectedCountryData().iso2) || 'br'; } catch (_) {}
-            const ok = pais === 'br'
-              ? (dd.length >= 10 && dd.length <= 11) || (dd.startsWith('55') && dd.length >= 12 && dd.length <= 13)
-              : dd.length >= 6 && dd.length <= 15;
-            if (!ok) {
-              errorEl.textContent = 'Telefone inválido. Confira o número.';
-              errorEl.classList.add('is-on');
-              phoneInput.focus();
-              submitBtn.disabled = false;
-              return;
-            }
-            let ddi = '55';
-            try { ddi = (iti && iti.getSelectedCountryData().dialCode) || '55'; } catch (_) {}
-            phone = (pais === 'br' && dd.length >= 12) ? '+' + dd : '+' + ddi + dd;
-          }
-        } catch (_) {}
+        const dd = phone.replace(/\D/g, '').replace(/^0+/, '');
+        let pais = 'br';
+        try { pais = (iti && iti.getSelectedCountryData().iso2) || 'br'; } catch (_) {}
+        const ok = pais === 'br'
+          ? (dd.length >= 10 && dd.length <= 11) || (dd.startsWith('55') && dd.length >= 12 && dd.length <= 13)
+          : dd.length >= 6 && dd.length <= 15;
+        if (!ok) {
+          errorEl.textContent = 'Telefone inválido. Confira o número com DDD.';
+          errorEl.classList.add('is-on');
+          phoneInput.focus();
+          return;
+        }
+        let ddi = '55';
+        try { ddi = (iti && iti.getSelectedCountryData().dialCode) || '55'; } catch (_) {}
+        phone = (pais === 'br' && dd.length >= 12) ? '+' + dd : '+' + ddi + dd;
+
         // Normaliza para o padrão Meta Advanced Matching: 5562998560087
         (function () {
           const d = phone.replace(/\D/g, '').replace(/^0+/, '');
@@ -4334,44 +4318,27 @@
           phone = d;
         })();
 
+        // ATIVA O BOTÃO INSTANTANEAMENTE
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando…';
+
         const email = emailInput.value.trim();
         const fullName = nameInput.value.trim();
         const nameParts = fullName.split(/\s+/);
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
-        // FIX 17/07/2026 (auditoria de tracking): antes só era setado dentro do
-        // .then() do genderPromise, la embaixo. Se o fallback de 250ms disparasse
-        // primeiro (comum), _submittedLead ficava com email/phone vazios e o
-        // evento Contact (botao "pular fila") saia sem PII nenhuma pro CAPI.
         _submittedLead = { email, fullName, phone };
         const genderGuess = firstName.trim().toLowerCase().endsWith('a') ? 'f' : 'm';
 
-        // TRAVA ANTI-DUPLO-CLIQUE (14/08/2026, ordem do Allysson): mesmo princípio
-        // do bloqueio de pagamento repetido no cartão. O botão já desabilita logo
-        // abaixo, mas isso não cobre clique duplo instantâneo, refresh com repost,
-        // nem voltar na página e enviar de novo. A assinatura do cadastro fica
-        // guardada por 5 minutos; repetição idêntica dentro da janela não reenvia,
-        // só repete o mesmo desfecho de sucesso que o lead já viu.
-        // O servidor tem a mesma trava (functions/lp/submit.js): navegador sem
-        // localStorage continua protegido.
         var _assinaturaEnvio = [fullName, email, phone].join('|').toLowerCase();
         try {
           var _ultimo = JSON.parse(localStorage.getItem('krob_ultimo_envio') || 'null');
-          if (_ultimo && _ultimo.a === _assinaturaEnvio && (Date.now() - _ultimo.t) < 300000) {
-            submitBtn.disabled = true;
+          if (_ultimo && _ultimo.a === _assinaturaEnvio && (Date.now() - _ultimo.t) < 180000) {
             submitBtn.textContent = 'Cadastro já enviado';
             if (_ultimo.r) { window.location.href = _ultimo.r; }
             return;
           }
-          // A assinatura só é gravada quando o envio CONFIRMA (no _go, mais abaixo). Gravar aqui,
-          // antes de enviar, travava a pessoa por 5 minutos quando a rede falhava: o botão dizia
-          // "cadastro já enviado" e ela não conseguia tentar de novo, mesmo sem nada ter sido
-          // gravado. O duplo clique instantâneo continua barrado pelo próprio botão (disabled
-          // logo abaixo) e pela trava de 5 min do servidor.
-        } catch (_e) { /* localStorage indisponível: segue o envio normal */ }
-
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Enviando…';
+        } catch (_e) {}
 
         const eventId = crypto.randomUUID();
         const eventTime = Math.floor(Date.now() / 1000);
@@ -4379,26 +4346,15 @@
         // Extrair tier/intent antes do fbq
         const _t      = tierHidden.value;
         const _intent = intentHidden.value;
-        // Gate espelho de functions/tracker.js (ADR-0011, 14/07/2026): régua
-        // ÚNICA de MQL. Lead = LeadQualificado = (topou pagar E acima do piso)
-        // OU faturamento R$20 mil+ (mesmo respondendo "pesquisando").
-        // LeadDesqualificado = todo o resto. Event IDs derivados deduplicam
-        // com a cascata CAPI.
         const _TIER_VALUES = { tres_a_seis: 1500, seis_a_dez: 2200, medio: 3000, medio_alto: 8000, alto: 12000, elevado: 15000, extremo: 22000, perfeito: 30000 };
         const _FLOOR_TIERS = ['abaixo_3k', 'sem_potencial'];
-        // Espelho de MQL_SOLO_TIERS em functions/_lib/revenue-tiers.js.
         const _RICH_TIERS = ['alto', 'elevado', 'extremo', 'perfeito'];
-        const _pagaria = (_intent === 'pronta_21_dias' || _intent === 'pecas_montar' || _intent === 'yes');
+        const _pagaria = (_intent === 'sim_comecar_agora' || _intent === 'investir_parcelado');
         const _eligibleLead = (!!_t && !_FLOOR_TIERS.includes(_t) && _pagaria) || _RICH_TIERS.includes(_t);
         const _qualifiedLead = _eligibleLead;
 
         try {
           if (window.fbq) {
-            // FIX 17/07/2026 (auditoria de tracking, maior alavanca de EMQ):
-            // nenhuma página passava Advanced Matching pro pixel, só o CAPI
-            // carregava PII. fbq('set','userData') roda uma vez e a Meta
-            // reaproveita em todo fbq('track'/'trackCustom') seguinte nesta
-            // página. O pixel.js hasheia sozinho, manda em texto puro aqui.
             const _getCookieAM = (n) => { const m = document.cookie.match('(?:^|; )' + n + '=([^;]*)'); return m ? decodeURIComponent(m[1]) : ''; };
             fbq('set', 'userData', {
               em: email,
@@ -4408,14 +4364,8 @@
               external_id: _getCookieAM('_krob_eid'),
               ge: genderGuess,
             });
-            // 08/10/2026: mesmo valor que o servidor manda (applyIntent em functions/_lib/revenue-tiers.js).
-            // Antes o navegador mandava só o valor da faixa e o servidor o valor com o bônus da
-            // intenção, com o mesmo código de evento: a Meta ficava com um dos dois ao acaso.
             const _baseValue = _TIER_VALUES[_t] || 0;
-            const _ltvIntent = (_intent === 'pronta_21_dias' || _intent === 'yes') ? Math.round(Math.max(_baseValue, 1500) * 1.5)
-              : (_intent === 'pecas_montar') ? Math.round(Math.max(_baseValue, 500) * 1.15)
-              : _baseValue;
-            const _leadValue = _ltvIntent > 0 ? _ltvIntent : 1;
+            const _leadValue = _baseValue > 0 ? _baseValue : 1;
             if (_eligibleLead) {
               fbq('track', 'Lead', { value: _leadValue, currency: 'BRL' }, { eventID: eventId });
               if (_qualifiedLead) {
@@ -4427,8 +4377,6 @@
           }
         } catch (_) {}
 
-        // ── ROTEAMENTO — paridade com o Zeus Bot (functions/_lib/routing.js) ──
-        // Fallback ANTES da resposta do backend, caso a rede falhe ou demore.
         // ── DESTINO OBRIGADO ──
         const _up = new URLSearchParams(window.location.search);
         const _dest = 'https://rubensgodoyobrigado.vercel.app/';
@@ -4455,26 +4403,44 @@
         };
         const _intentLabel = INTENT_LABELS[_intent] || _intent;
 
+        // Data e Horário no fuso de Brasília (pt-BR)
+        const agora = new Date();
+        const dataBrasil = agora.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        const horaBrasil = agora.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        const dataHoraCompleta = dataBrasil + ' ' + horaBrasil;
+
+        // Anúncio e Origem
+        const utmContent = _up.get('utm_content') || '';
+        const utmSource = _up.get('utm_source') || 'Direto/Orgânico';
+        const utmCampaign = _up.get('utm_campaign') || '';
+
         const _makePayload = {
           nome: fullName,
           primeiro_nome: firstName,
           sobrenome: lastName,
           email: email,
           telefone: phone,
+          whatsapp: phone,
           instagram: instagram,
           faturamento_codigo: _t,
           faturamento: _tierLabel,
           capacidade_investimento_codigo: _intent,
           capacidade_investimento: _intentLabel,
-          utm_source:   _up.get('utm_source')   || '',
+          investimento: _intentLabel,
+          data: dataHoraCompleta,
+          data_dia: dataBrasil,
+          horario: horaBrasil,
+          origem: utmSource,
+          anuncio: utmContent || utmCampaign || 'Sem anúncio/Orgânico',
+          utm_source:   utmSource,
           utm_medium:   _up.get('utm_medium')   || '',
-          utm_campaign: _up.get('utm_campaign') || '',
-          utm_content:  _up.get('utm_content')  || '',
+          utm_campaign: utmCampaign,
+          utm_content:  utmContent,
           utm_term:     _up.get('utm_term')     || '',
           fbp: _getCookie('_fbp'),
           fbc: _getCookie('_fbc'),
           pagina_origem: window.location.href,
-          timestamp: new Date().toISOString(),
+          timestamp: agora.toISOString(),
           event_id: eventId,
         };
 
@@ -4496,7 +4462,7 @@
           window.location.href = _redirectUrl;
         };
 
-        // Envia para o Webhook do Make em paralelo e aguarda 3 segundos exibindo "Enviando…"
+        // Envia para o Webhook do Make em paralelo e aguarda 2.5 segundos exibindo "Enviando…"
         const _webhookPromise = fetch('https://hook.us2.make.com/2cc8al6xxdw24guhotprc0gei9l6p2c7', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -4504,7 +4470,7 @@
           keepalive: true
         }).catch(e => console.warn('Envio webhook:', e));
 
-        const _delayPromise = new Promise(resolve => setTimeout(resolve, 3000));
+        const _delayPromise = new Promise(resolve => setTimeout(resolve, 2500));
 
         await Promise.all([_webhookPromise, _delayPromise]);
 
