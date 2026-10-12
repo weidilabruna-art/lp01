@@ -6,10 +6,10 @@ html, body { width: 100%; height: 100%; overflow: hidden; }
 
 body {
   background:
-    radial-gradient(ellipse 70% 60% at 50% 40%, rgba(160,90,55,0.10) 0%, transparent 65%),
-    radial-gradient(ellipse 40% 30% at 15% 80%, rgba(110,55,25,0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 35% 25% at 88% 20%, rgba(110,55,25,0.06) 0%, transparent 55%),
-    #0a0705;
+    radial-gradient(ellipse 70% 60% at 50% 40%, rgba(37, 39, 82, 0.40) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 30% at 15% 80%, rgba(24, 26, 60, 0.30) 0%, transparent 55%),
+    radial-gradient(ellipse 35% 25% at 88% 20%, rgba(24, 26, 60, 0.25) 0%, transparent 55%),
+    #0a0b18;
   position: relative;
 }
 
@@ -70,14 +70,14 @@ body {
   pointer-events: none;
   z-index: 10;
 }
-.fade-top    { top: 0;    background: linear-gradient(to bottom, #0a0705 0%, transparent 100%); }
-.fade-bottom { bottom: 0; background: linear-gradient(to top,   #0a0705 0%, transparent 100%); }
+.fade-top    { top: 0;    background: linear-gradient(to bottom, #0a0b18 0%, transparent 100%); }
+.fade-bottom { bottom: 0; background: linear-gradient(to top,   #0a0b18 0%, transparent 100%); }
 
 /* Vinheta lateral */
 .vignette {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, #0a0705 0%, transparent 14%, transparent 86%, #0a0705 100%);
+  background: linear-gradient(to right, #0a0b18 0%, transparent 14%, transparent 86%, #0a0b18 100%);
   pointer-events: none;
   z-index: 9;
 }
@@ -95,7 +95,7 @@ body {
 /* Mobile: fade menor para não cobrir imagens */
 @media (max-width: 520px) {
   .fade-top, .fade-bottom { height: 60px; }
-  .vignette { background: linear-gradient(to right, #0a0705 0%, transparent 6%, transparent 94%, #0a0705 100%); }
+  .vignette { background: linear-gradient(to right, #0a0b18 0%, transparent 6%, transparent 94%, #0a0b18 100%); }
 }
 </style>
 </head>
