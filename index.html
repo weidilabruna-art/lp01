@@ -35,8 +35,14 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-  <link rel="preconnect" href="https://player.vimeo.com">
-  <link rel="preconnect" href="https://i.vimeocdn.com" crossorigin="">
+  <script>!function(i,n){i._plt=i._plt||(n&&n.timeOrigin?n.timeOrigin+n.now():Date.now())}(window,performance);</script>
+  <link rel="preload" href="https://scripts.converteai.net/157dc1c9-c520-47a7-82cd-4a4eaa882072/players/6acc348a1dcff50bdc41fac3/v4/player.js" as="script">
+  <link rel="preload" href="https://scripts.converteai.net/lib/js/smartplayer-wc/v4/smartplayer.js" as="script">
+  <link rel="preload" href="https://cdn.converteai.net/157dc1c9-c520-47a7-82cd-4a4eaa882072/6acc3469f6a57d8e37ba1997/main.m3u8" as="fetch">
+  <link rel="dns-prefetch" href="https://cdn.converteai.net">
+  <link rel="dns-prefetch" href="https://scripts.converteai.net">
+  <link rel="dns-prefetch" href="https://images.converteai.net">
+  <link rel="dns-prefetch" href="https://license.vturb.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&amp;family=DM+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/intlTelInput.css">
@@ -346,20 +352,11 @@
     .video-frame {
       position: relative;
       width: 100%;
-      /* Ultra-wide cinematic 21:9 (respeitando proporção real do vídeo gravado) */
-      padding-bottom: 42.86%;
       border-radius: var(--radius);
       overflow: hidden;
       background: var(--bg-card);
       box-shadow: var(--shadow-glow);
       border: 1px solid var(--border);
-    }
-    .video-frame iframe {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: 0;
     }
     .video-frame::before {
       content: '';
@@ -3337,7 +3334,11 @@
 
     <section class="video-section">
       <div class="video-frame">
-        <iframe id="vimeo-player" src="https://player.vimeo.com/video/1227467530?h=b6cca25b99&amp;autoplay=1&amp;muted=1&amp;playsinline=1&amp;badge=0&amp;autopause=0&amp;controls=1&amp;player_id=0&amp;app_id=58479" allow="autoplay; fullscreen; picture-in-picture; clipboard-write" allowfullscreen="" playsinline="" title="Apresentação Magna"></iframe>
+        <vturb-smartplayer id="vid-6acc348a1dcff50bdc41fac3" style="display: block; margin: 0 auto; width: 100%; "><div class="vturb-player-placeholder" style="position: relative; width: 100%; padding: 56.25% 0 0; z-index: 0; background-color: black;"></div></vturb-smartplayer>
+        <script type="text/javascript">
+          var s=document.createElement("script");
+          s.src="https://scripts.converteai.net/157dc1c9-c520-47a7-82cd-4a4eaa882072/players/6acc348a1dcff50bdc41fac3/v4/player.js", s.async=!0,document.head.appendChild(s);
+        </script>
       </div>
     </section>
 
@@ -3849,101 +3850,7 @@
     </div>
   </div>
 
-  <!-- Vimeo Player API + Auto-restart com som ao desmutar -->
-  <script src="js/player.js"></script>
-  <script>
-    (function () {
-      const iframe = document.getElementById('vimeo-player');
-      if (!iframe || typeof Vimeo === 'undefined') return;
 
-      const player = new Vimeo.Player(iframe);
-      let restartedWithSound = false;
-      let lastMuted = true;
-      let pollHandle = null;
-      let consecutiveErrors = 0;
-
-      async function ensureMutedAutoplay() {
-        try {
-          await player.ready();
-          await player.setMuted(true);
-          await player.setVolume(0);
-          await player.play().catch(function () {});
-          lastMuted = true;
-        } catch (_) {}
-      }
-
-      async function restartWithSound() {
-        if (restartedWithSound) return;
-        restartedWithSound = true;
-        try {
-          // Garante som ativo + reinicia do zero
-          await player.setMuted(false);
-          await player.setVolume(1);
-          await player.setCurrentTime(0);
-          await player.play();
-        } catch (err) {
-          // Em caso de bloqueio do browser, tenta de novo após 200ms
-          setTimeout(async function () {
-            try {
-              await player.setMuted(false);
-              await player.setCurrentTime(0);
-              await player.play();
-            } catch (_) {}
-          }, 200);
-        }
-        if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
-      }
-
-      async function checkUnmuteTransition() {
-        if (restartedWithSound) return;
-        try {
-          const muted = await player.getMuted();
-          const volume = await player.getVolume();
-          consecutiveErrors = 0;
-
-          // Detecta transição muted->unmuted ou volume zerado->positivo
-          if (lastMuted === true && muted === false) {
-            await restartWithSound();
-            return;
-          }
-          if (volume > 0 && muted === false && lastMuted === true) {
-            await restartWithSound();
-            return;
-          }
-          lastMuted = muted;
-        } catch (_) {
-          consecutiveErrors += 1;
-          if (consecutiveErrors > 20) {
-            // 10s de erros consecutivos: aborta o polling pra não vazar
-            if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
-          }
-        }
-      }
-
-      // 1. Garante autoplay muted ao iniciar
-      ensureMutedAutoplay();
-
-      // 2. Listener nativo da API (rápido)
-      player.on('volumechange', checkUnmuteTransition);
-      player.on('play', function () {
-        // Quando o vídeo é despausado, checa se está com som
-        if (!restartedWithSound) checkUnmuteTransition();
-      });
-
-      // 3. Polling fallback a cada 500ms (garante detecção mesmo se o evento falhar)
-      pollHandle = setInterval(checkUnmuteTransition, 500);
-
-      // 4. Cleanup quando a aba fica oculta (economiza CPU)
-      document.addEventListener('visibilitychange', function () {
-        if (document.hidden && pollHandle) {
-          clearInterval(pollHandle);
-          pollHandle = null;
-        } else if (!document.hidden && !pollHandle && !restartedWithSound) {
-          pollHandle = setInterval(checkUnmuteTransition, 500);
-        }
-      });
-    })();
-  </script>
 
   <script src="js/intlTelInput.min.js"></script>
   <script>
