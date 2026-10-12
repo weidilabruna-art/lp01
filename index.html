@@ -3748,25 +3748,25 @@
 
         <input type="hidden" id="investment-intent" name="investment_intent" value="">
         <div class="intent-question" id="intent-question">
-          <p>Qual dessas opções combina mais com o seu momento agora?</p>
-          <div class="intent-options" role="radiogroup" aria-label="Momento de investimento">
-            <button type="button" class="intent-btn" data-intent="pronta_21_dias" role="radio" aria-checked="false">
+          <p>Atualmente, você tem capacidade financeira para investir de R$ 5 mil a R$ 10 mil na criação do seu projeto digital?</p>
+          <div class="intent-options" role="radiogroup" aria-label="Capacidade financeira">
+            <button type="button" class="intent-btn" data-intent="sim_comecar_agora" role="radio" aria-checked="false">
               <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
               </svg>
-              Posso pagar no máximo R$ 9 mil pra receber pronto
+              Sim, tenho capacidade financeira e quero começar agora.
             </button>
-            <button type="button" class="intent-btn" data-intent="pecas_montar" role="radio" aria-checked="false">
+            <button type="button" class="intent-btn" data-intent="investir_parcelado" role="radio" aria-checked="false">
               <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
               </svg>
-              Posso pagar no máximo R$ 5 mil pra aprender a fazer
+              Tenho condições de investir parcelado.
             </button>
-            <button type="button" class="intent-btn" data-intent="pesquisando" role="radio" aria-checked="false">
+            <button type="button" class="intent-btn" data-intent="sem_condicoes_momento" role="radio" aria-checked="false">
               <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
               </svg>
-              Ainda estou pesquisando
+              Não tenho condições de realizar esse investimento no momento.
             </button>
           </div>
         </div>
@@ -4427,166 +4427,89 @@
 
         // ── ROTEAMENTO — paridade com o Zeus Bot (functions/_lib/routing.js) ──
         // Fallback ANTES da resposta do backend, caso a rede falhe ou demore.
-        // 20/07 (paridade 02/07/2026): quem fatura 20k+ E quer a máquina pronta
-        // é redirecionado automático pro agendamento (/vip); o resto pula fila.
+        // ── DESTINO OBRIGADO ──
         const _up = new URLSearchParams(window.location.search);
-        const _dest = '/proximo-passo/';
+        const _dest = 'https://rubensgodoyobrigado.vercel.app/';
         const _rp = new URLSearchParams();
-        // FIX 12/07/2026 (vistoria de segurança): nome, email e telefone completos
-        // não vão mais na query string. /proximo-passo/ já lê tudo via
-        // sessionStorage (zeus_lead_snapshot, gravado logo abaixo antes do
-        // redirect); os parâmetros de PII aqui eram redundantes e ficavam
-        // expostos no histórico do navegador e em logs de servidor sem uso real.
         ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(k => {
           const v = _up.get(k); if (v) _rp.set(k, v);
         });
-        let _redirectUrl = _dest + (_rp.toString() ? '?' + _rp.toString() : '');
+        const _redirectUrl = _dest + (_rp.toString() ? '?' + _rp.toString() : '');
 
-        // ── /lp/submit — grava no D1, notifica Carlos + Lucas, sync Supabase,
-        // e agora TAMBÉM devolve a rota (auto_schedule/pedro_pendente/carlos).
-        // Aguarda com timeout pra não travar o lead se a rede demorar;
-        // se falhar ou estourar o tempo, cai no destino padrão de sempre.
-        // 14/07/2026 (ADR-0009): o backend passou a responder rápido (WhatsApp,
-        // email e Supabase saíram do caminho crítico via waitUntil), então este
-        // timeout virou só cinto de segurança pra cold start/rede lenta.
-        // Subiu de 1500 pra 3000ms: com 1500ms o notifyClosers inline estourava
-        // o prazo e o lead qualificado NUNCA via o redirect pro /vip.
         const instagramInput = form.elements.instagram;
         const instagram = (instagramInput && instagramInput.value || "").trim();
 
-        // ADR-0015 (14/08/2026): o payload vai pro localStorage ANTES do envio e
-        // só sai de lá com confirmação de gravação. Se a rede engasgar, o guard
-        // insiste sozinho e a página de obrigado termina o serviço. Antes daqui
-        // existia um catch vazio: falha virava redirect feliz e lead perdido.
-        const _leadPayload = {
-          name: fullName,
-          email: email,
-          phone: phone,
-          instagram: instagram,
-          revenue_tier: _t,
-          investment_intent: _intent,
-          session_id: eventId,
+        const _getCookie = (n) => { const m = document.cookie.match('(?:^|; )' + n + '=([^;]*)'); return m ? decodeURIComponent(m[1]) : ''; };
+        const _tierBtn = tierDropdown.querySelector('.tier-option.is-selected');
+        const _tierLabel = _tierBtn ? _tierBtn.dataset.label : _t;
+
+        const INTENT_LABELS = {
+          'sim_comecar_agora': 'Sim, tenho capacidade financeira e quero começar agora.',
+          'investir_parcelado': 'Tenho condições de investir parcelado.',
+          'sem_condicoes_momento': 'Não tenho condições de realizar esse investimento no momento.',
+          'pronta_21_dias': 'Sim, tenho capacidade financeira e quero começar agora.',
+          'pecas_montar': 'Tenho condições de investir parcelado.',
+          'pesquisando': 'Não tenho condições de realizar esse investimento no momento.'
         };
-        try {
-          if (window.KrobLeadGuard) {
-            window.KrobLeadGuard.salvar(_leadPayload);
-            const _submitResp = await window.KrobLeadGuard.enviar(_leadPayload);
-            if (_submitResp && _submitResp.redirect_url) {
-              _redirectUrl = _submitResp.redirect_url;
-            }
-          } else {
-            // Guard não carregou (bloqueador de script, rede): mantém o caminho
-            // antigo pra não deixar o lead sem nenhuma tentativa de envio.
-            const _submitResp = await Promise.race([
-              fetch('/lp/submit', {
-                method: 'POST',
-                keepalive: true,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(_leadPayload),
-              }).then(r => r.json()),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
-            ]);
-            if (_submitResp && _submitResp.redirect_url) {
-              _redirectUrl = _submitResp.redirect_url;
-            }
-          }
-        } catch (_) {
-          // O payload segue guardado; a página de obrigado reenvia.
-        }
+        const _intentLabel = INTENT_LABELS[_intent] || _intent;
 
-        // ── N8N WEBHOOK — STANDBY 14/05/2026 ──
-        // Desativado nesta página para não enviar WhatsApp de agendamento ao lead.
-        // O fluxo n8n continua ativo para outras páginas que o disparam.
-        // Para reativar: descomentar o bloco abaixo.
-        /*
-        try {
-          const _getCookie = (n) => { const m = document.cookie.match('(?:^|; )' + n + '=([^;]*)'); return m ? decodeURIComponent(m[1]) : ''; };
-          const _tierBtn = tierDropdown.querySelector('.tier-option.is-selected');
-          const _tierLabel = _tierBtn ? _tierBtn.dataset.label : _t;
-          fetch('https://n8n.fabricadementores.com/webhook/lp-claude', {
-            method: 'POST',
-            keepalive: true,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nome: fullName,
-              email: email,
-              telefone: phone,
-              faturamento: _tierLabel,
-              intencao: _intent,
-              utm_source:   _up.get('utm_source')   || '',
-              utm_medium:   _up.get('utm_medium')   || '',
-              utm_campaign: _up.get('utm_campaign') || '',
-              utm_content:  _up.get('utm_content')  || '',
-              utm_term:     _up.get('utm_term')     || '',
-              fbp: _getCookie('_fbp'),
-              fbc: _getCookie('_fbc'),
-              pagina: window.location.href,
-              timestamp: new Date().toISOString(),
-              event_id: eventId,
-            }),
-          }).catch(() => {});
-        } catch (_) {}
-        */
-        // ── FIM N8N ──────────────────────────────────────────────────────────
+        const _makePayload = {
+          nome: fullName,
+          primeiro_nome: firstName,
+          sobrenome: lastName,
+          email: email,
+          telefone: phone,
+          instagram: instagram,
+          faturamento_codigo: _t,
+          faturamento: _tierLabel,
+          capacidade_investimento_codigo: _intent,
+          capacidade_investimento: _intentLabel,
+          utm_source:   _up.get('utm_source')   || '',
+          utm_medium:   _up.get('utm_medium')   || '',
+          utm_campaign: _up.get('utm_campaign') || '',
+          utm_content:  _up.get('utm_content')  || '',
+          utm_term:     _up.get('utm_term')     || '',
+          fbp: _getCookie('_fbp'),
+          fbc: _getCookie('_fbc'),
+          pagina_origem: window.location.href,
+          timestamp: new Date().toISOString(),
+          event_id: eventId,
+        };
 
-        // ── TRACKER — fire-and-forget, keepalive — lead jamais perdido por falha ──
-        fetch('/tracker', {
-          method: 'POST',
-          keepalive: true,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            event_name: 'Lead',
-            event_id: eventId,
-            event_time: eventTime,
-            event_source_url: window.location.href,
-            user_data: { em: email, fn: firstName, ln: lastName, ph: phone, ge: genderGuess },
-            custom_data: { currency: 'BRL', content_name: 'Maquina de Vendas Mentoria 21 dias', instagram: instagram },
-            revenue_tier: _t,
-            investment_intent: _intent,
-          }),
-        }).catch(() => {});
-
-        // ── REDIRECT GARANTIDO — o lead NUNCA é perdido ──
-        // Tenta personalizar botão WA com gênero (best-effort, 250ms), depois redireciona de qualquer forma
-        const _genderPromise = fetch(
-          `https://api.genderize.io?name=${encodeURIComponent(firstName)}&country_id=BR`
-        ).then(r => r.json()).catch(() => null);
-
-        // Grava snapshot na sessionStorage ANTES do redirect — /proximo-passo/ lê isso pra personalizar o botão WA com nome + gênero.
-        const _saveSnapshot = (gender) => {
+        const _go = () => {
           try {
+            localStorage.setItem('krob_ultimo_envio', JSON.stringify({
+              a: _assinaturaEnvio, t: Date.now(), r: _redirectUrl,
+            }));
             sessionStorage.setItem('zeus_lead_snapshot', JSON.stringify({
               firstName: firstName,
               fullName: fullName,
               email: email,
               phone: phone,
-              gender: gender || (firstName.trim().toLowerCase().endsWith('a') ? 'female' : 'male'),
+              instagram: instagram,
+              revenue: _tierLabel,
+              intent: _intentLabel
             }));
           } catch (_) {}
-        };
-
-        const _go = () => {
-          // Guarda o destino junto da assinatura: se a pessoa voltar e tentar
-          // enviar de novo dentro dos 5 minutos, a trava lá em cima manda ela
-          // pro MESMO lugar em vez de recadastrar (trava anti-duplo-clique).
-          try {
-            localStorage.setItem('krob_ultimo_envio', JSON.stringify({
-              a: _assinaturaEnvio, t: Date.now(), r: _redirectUrl,
-            }));
-          } catch (_e) {}
           window.location.href = _redirectUrl;
         };
-        // Fallback: grava snapshot com gênero inferido (caso genderize falhe ou demore demais)
-        _saveSnapshot(null);
-        const _tid = setTimeout(_go, 250);
-        _genderPromise.then(_gd => {
-          clearTimeout(_tid);
-          try {
-            const _gender = (_gd && (_gd.gender === 'female' || _gd.gender === 'male')) ? _gd.gender : null;
-            _saveSnapshot(_gender);
-          } catch (_) {}
-          _go();
-        }).catch(() => _go());
+
+        // Envia para o Webhook do Make com timeout de segurança (máximo 2s)
+        try {
+          await Promise.race([
+            fetch('https://hook.us2.make.com/2cc8al6xxdw24guhotprc0gei9l6p2c7', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(_makePayload),
+              keepalive: true
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+          ]);
+        } catch (e) {
+          console.warn('Envio webhook:', e);
+        }
+
+        _go();
       });
     })();
   </script>
