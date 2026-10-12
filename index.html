@@ -207,16 +207,19 @@
       margin-top: 0;
     }
 
-    /* Tarja superior com logo Audax */
+    /* Tarja superior - fundo claro padrão Magna + logo escura */
     .top-bar {
       position: relative;
       width: 100%;
-      padding: 14px 22px;
+      padding: 16px 22px;
       background:
-        radial-gradient(ellipse 100% 80% at 50% 0%, rgba(37, 39, 82, 0.4), transparent 70%),
-        linear-gradient(180deg, #0f1126 0%, #0a0b18 100%);
-      border-bottom: 1px solid rgba(184, 136, 122, 0.2);
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        radial-gradient(ellipse 100% 80% at 50% 0%, rgba(212, 160, 138, 0.18), transparent 70%),
+        linear-gradient(180deg, #fdf8f2 0%, #f5ebe0 100%);
+      border-bottom: 1px solid rgba(184, 136, 122, 0.35);
+      box-shadow:
+        0 0 0 1px rgba(184, 136, 122, 0.1) inset,
+        0 4px 24px rgba(0, 0, 0, 0.4),
+        0 0 32px rgba(184, 136, 122, 0.15);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -229,13 +232,14 @@
       left: 50%;
       transform: translateX(-50%);
       width: 60%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(184, 136, 122, 0.5), transparent);
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #8a4a3c, transparent);
+      box-shadow: 0 0 12px rgba(110, 64, 48, 0.4);
     }
     .top-bar .brand-logo {
-      height: 32px;
+      height: 38px;
       width: auto;
-      filter: none;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12));
     }
 
     /* Header dentro do main (LEGADO - removido) */
@@ -3299,7 +3303,7 @@
 </head>
 <body>
   <header class="top-bar">
-    <img src="images/logo-audax.png" alt="Audax Company" class="brand-logo" width="1024" height="397">
+    <img src="images/magna-logo-rosegold.webp" alt="Audax" class="brand-logo" width="1024" height="964">
   </header>
 
   <main>
@@ -3448,8 +3452,8 @@
       <div class="clientes-marquee" aria-label="Clientes Magna">
         <div class="clientes-track">
           <div class="cliente-card">
-            <img src="images/cliente-novo-1.webp" alt="Cliente Magna 1" loading="lazy">
-            <span class="cliente-card-tag">Arthur Albuquerque · Advocacia</span>
+            <img src="images/cliente-novo-1.webp" alt="Arthur Albuquerque" loading="lazy">
+            <span class="cliente-card-tag">Arthur Albuquerque</span>
           </div>
           <div class="cliente-card">
             <img src="images/cliente-novo-2.webp" alt="Agora eu Vejo" loading="lazy">
@@ -3470,19 +3474,19 @@
           <!-- Duplicação pra loop infinito sem corte -->
           <div class="cliente-card" aria-hidden="true">
             <img src="images/cliente-novo-1.webp" alt="" loading="lazy">
-            <span class="cliente-card-tag">Arthur Albuquerque · Advocacia</span>
+            <span class="cliente-card-tag">Arthur Albuquerque</span>
           </div>
           <div class="cliente-card" aria-hidden="true">
             <img src="images/cliente-novo-2.webp" alt="" loading="lazy">
-            <span class="cliente-card-tag">Nome 2</span>
+            <span class="cliente-card-tag">Agora eu Vejo</span>
           </div>
           <div class="cliente-card" aria-hidden="true">
             <img src="images/cliente-novo-3.webp" alt="" loading="lazy">
-            <span class="cliente-card-tag">Nome 3</span>
+            <span class="cliente-card-tag">Amanda Naves</span>
           </div>
           <div class="cliente-card" aria-hidden="true">
             <img src="images/cliente-novo-4.webp" alt="" loading="lazy">
-            <span class="cliente-card-tag">Nome 4</span>
+            <span class="cliente-card-tag">Rubens Godoy</span>
           </div>
           <div class="cliente-card" aria-hidden="true">
             <img src="images/cliente-novo-5.webp" alt="" loading="lazy">
