@@ -2288,19 +2288,21 @@
       transition: border-color 0.18s var(--ease), background-color 0.18s var(--ease), transform 0.12s var(--ease), box-shadow 0.18s var(--ease);
     }
     .intent-btn:hover { border-color: var(--rg-line); }
-    .intent-btn:active { transform: scale(0.98); }
+    .intent-btn.is-selected[data-intent="sim_comecar_agora"],
     .intent-btn.is-selected[data-intent="pronta_21_dias"] {
       border-color: var(--green);
       background: rgba(74, 222, 128, 0.1);
       color: var(--green);
       box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
     }
+    .intent-btn.is-selected[data-intent="investir_parcelado"],
     .intent-btn.is-selected[data-intent="pecas_montar"] {
-      border-color: var(--rg-accent, var(--rg-line));
-      background: rgba(212, 160, 138, 0.12);
+      border-color: rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.08);
       color: var(--txt);
-      box-shadow: 0 0 0 3px rgba(212, 160, 138, 0.14);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
     }
+    .intent-btn.is-selected[data-intent="sem_condicoes_momento"],
     .intent-btn.is-selected[data-intent="pesquisando"] {
       border-color: var(--red);
       background: rgba(196, 64, 64, 0.1);
@@ -4494,20 +4496,17 @@
           window.location.href = _redirectUrl;
         };
 
-        // Envia para o Webhook do Make com timeout de segurança (máximo 2s)
-        try {
-          await Promise.race([
-            fetch('https://hook.us2.make.com/2cc8al6xxdw24guhotprc0gei9l6p2c7', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(_makePayload),
-              keepalive: true
-            }),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
-          ]);
-        } catch (e) {
-          console.warn('Envio webhook:', e);
-        }
+        // Envia para o Webhook do Make em paralelo e aguarda 3 segundos exibindo "Enviando…"
+        const _webhookPromise = fetch('https://hook.us2.make.com/2cc8al6xxdw24guhotprc0gei9l6p2c7', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(_makePayload),
+          keepalive: true
+        }).catch(e => console.warn('Envio webhook:', e));
+
+        const _delayPromise = new Promise(resolve => setTimeout(resolve, 3000));
+
+        await Promise.all([_webhookPromise, _delayPromise]);
 
         _go();
       });
