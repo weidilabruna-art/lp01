@@ -31,7 +31,7 @@
   <meta name="twitter:image" content="images/magna-logo-rosegold.png">
 
   <link rel="canonical" href="https://mentoria.fabricadementores.com/maquina-de-vendas/">
-  <link rel="icon" href="images/magna-logo-rosegold.png" type="image/png">
+  <link rel="icon" href="images/logo-audax.png" type="image/png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -207,19 +207,16 @@
       margin-top: 0;
     }
 
-    /* Tarja superior - fundo claro padrão Magna + logo escura (filter) */
+    /* Tarja superior com logo Audax */
     .top-bar {
       position: relative;
       width: 100%;
-      padding: 16px 22px;
+      padding: 14px 22px;
       background:
-        radial-gradient(ellipse 100% 80% at 50% 0%, rgba(212, 160, 138, 0.18), transparent 70%),
-        linear-gradient(180deg, #fdf8f2 0%, #f5ebe0 100%);
-      border-bottom: 1px solid rgba(184, 136, 122, 0.35);
-      box-shadow:
-        0 0 0 1px rgba(184, 136, 122, 0.1) inset,
-        0 4px 24px rgba(0, 0, 0, 0.4),
-        0 0 32px rgba(184, 136, 122, 0.15);
+        radial-gradient(ellipse 100% 80% at 50% 0%, rgba(37, 39, 82, 0.4), transparent 70%),
+        linear-gradient(180deg, #0f1126 0%, #0a0b18 100%);
+      border-bottom: 1px solid rgba(184, 136, 122, 0.2);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -232,20 +229,13 @@
       left: 50%;
       transform: translateX(-50%);
       width: 60%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #8a4a3c, transparent);
-      box-shadow: 0 0 12px rgba(110, 64, 48, 0.4);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(184, 136, 122, 0.5), transparent);
     }
     .top-bar .brand-logo {
-      height: 38px;
+      height: 32px;
       width: auto;
-      /* Logo rosegold convertida pra tom escuro warm (legível em fundo claro) */
-      filter:
-        brightness(0.35)
-        sepia(1)
-        saturate(2.5)
-        hue-rotate(-12deg)
-        drop-shadow(0 4px 10px rgba(110, 64, 48, 0.25));
+      filter: none;
     }
 
     /* Header dentro do main (LEGADO - removido) */
@@ -2383,10 +2373,9 @@
       margin: 0 auto 12px;
     }
     .footer-logo {
-      height: 22px;
+      height: 32px;
       width: auto;
-      opacity: 0.55;
-      filter: drop-shadow(0 0 8px rgba(184, 136, 122, 0.2));
+      opacity: 0.95;
       margin-bottom: 8px;
     }
     .footer-text {
@@ -3310,7 +3299,7 @@
 </head>
 <body>
   <header class="top-bar">
-    <img src="images/magna-logo-rosegold.webp" alt="Magna" class="brand-logo" width="350" height="534">
+    <img src="images/logo-audax.png" alt="Audax Company" class="brand-logo" width="1024" height="397">
   </header>
 
   <main>
@@ -3669,8 +3658,8 @@
 
     <footer class="footer">
       <div class="footer-mark" aria-hidden="true"></div>
-      <img src="images/magna-logo-rosegold.webp" alt="Magna" class="footer-logo" width="350" height="534">
-      <p class="footer-text">Fábrica de Mentores</p>
+      <img src="images/logo-audax.png" alt="Audax Company" class="footer-logo" width="1024" height="397">
+      <p class="footer-text">Audax Company</p>
     </footer>
   </main>
 
