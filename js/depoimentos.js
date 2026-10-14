@@ -43,13 +43,11 @@ const DEPOIMENTOS = [
     var meta = '';
     if (d.username) meta += '<div class="autoridade-meta">@' + d.username + '</div>';
     if (d.followers) meta += '<div class="autoridade-meta"><b>' + d.followers + '</b></div>';
-    var url = 'https://www.instagram.com/' + d.username + '/';
-    return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="autoridade-card"' +
-      (clone ? ' aria-hidden="true" tabindex="-1"' : '') +
-      ' aria-label="Ver perfil de ' + d.name + ' no Instagram">' +
+    return '<div class="autoridade-card"' +
+      (clone ? ' aria-hidden="true"' : '') + '>' +
       avatarHtml(d, 64, !clone && index < 2) +
       '<div class="autoridade-name">' + d.name + '</div>' + meta +
-      '</a>';
+      '</div>';
   }
 
   /* ---------- render ---------- */
