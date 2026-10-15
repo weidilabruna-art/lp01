@@ -414,6 +414,25 @@
       align-items: center;
       width: 100%;
     }
+    /* Delay de Pitch (15 segundos) */
+    .delayed-content {
+      display: none;
+    }
+    .delayed-content.is-visible {
+      display: block;
+      animation: revealPitch 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes revealPitch {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     /* Botão Pular Fila (WhatsApp) */
     .video-cta-wrapper {
       margin-top: 20px;
@@ -3410,15 +3429,18 @@
           s.src="https://scripts.converteai.net/157dc1c9-c520-47a7-82cd-4a4eaa882072/players/6acc34d305f2a2e0c2230358/v4/player.js", s.async=!0,document.head.appendChild(s);
         </script>
       </div>
-      <div class="video-cta-wrapper">
+    </section>
+
+    <!-- Conteúdo revelado aos 15 segundos -->
+    <div class="delayed-content" id="delayed-content">
+      <div class="video-cta-wrapper" style="margin-bottom: 28px;">
         <a href="#autoridade" class="btn-pular-fila">
           Pular fila
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 8px;"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
         </a>
       </div>
-    </section>
 
-    <section class="autoridade" id="autoridade" aria-label="Quem Confia na AUDAX">
+      <section class="autoridade" id="autoridade" aria-label="Quem Confia na AUDAX">
       <div class="autoridade-head">
         <span class="clientes-tag">Quem Confia na AUDAX</span>
       </div>
@@ -3638,6 +3660,7 @@
       <div class="footer-mark" aria-hidden="true"></div>
       <img src="images/logo-audax.png" alt="Audax Company" class="footer-logo" width="1024" height="397">
     </footer>
+    </div><!-- /.delayed-content -->
   </main>
 
   <!-- Modal de DEPOIMENTO (carrossel de autoridade, dados em depoimentos.js) -->
@@ -4455,4 +4478,32 @@
   <script src="js/depoimentos.js" defer=""></script>
 
 
+
+  <!-- Script de delay do pitch (15 segundos) -->
+  <script>
+    (function() {
+      var DELAY_SECONDS = 15;
+      var el = document.getElementById('delayed-content');
+      if (!el) return;
+
+      function reveal() {
+        if (!el.classList.contains('is-visible')) {
+          el.classList.add('is-visible');
+        }
+      }
+
+      // Timer garantido aos 15 segundos
+      setTimeout(reveal, DELAY_SECONDS * 1000);
+
+      // Eventos de reprodução do VTurb
+      window.addEventListener('message', function(e) {
+        try {
+          var d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+          if (d && (d.currentTime >= DELAY_SECONDS || d.time >= DELAY_SECONDS)) {
+            reveal();
+          }
+        } catch(err) {}
+      });
+    })();
+  </script>
 </body></html>
