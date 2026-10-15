@@ -399,6 +399,43 @@
       pointer-events: none;
     }
 
+    /* Botão Pular Fila (WhatsApp) */
+    .video-cta-wrapper {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    .btn-pular-fila {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 440px;
+      padding: 16px 28px;
+      background-color: #11cc00;
+      color: #ffffff;
+      font-family: var(--font-sans);
+      font-size: clamp(16px, 4.2vw, 18px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      border-radius: 9999px;
+      box-shadow: 0 6px 24px rgba(17, 204, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      text-align: center;
+      cursor: pointer;
+    }
+    .btn-pular-fila:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(17, 204, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.25);
+      filter: brightness(1.05);
+    }
+    .btn-pular-fila:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 16px rgba(17, 204, 0, 0.35);
+    }
+
     /* Divider rosegold */
     .divider {
       width: 60%;
@@ -3357,6 +3394,11 @@
           var s=document.createElement("script");
           s.src="https://scripts.converteai.net/157dc1c9-c520-47a7-82cd-4a4eaa882072/players/6acc34d305f2a2e0c2230358/v4/player.js", s.async=!0,document.head.appendChild(s);
         </script>
+      </div>
+      <div class="video-cta-wrapper">
+        <a href="https://wa.link/3oudqa" target="_blank" rel="noopener noreferrer" class="btn-pular-fila">
+          Pular fila
+        </a>
       </div>
     </section>
 
