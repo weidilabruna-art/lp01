@@ -414,23 +414,9 @@
       align-items: center;
       width: 100%;
     }
-    /* Delay de Pitch (15 segundos) */
+    /* Conteúdo do Pitch (sem delay) */
     .delayed-content {
-      display: none;
-    }
-    .delayed-content.is-visible {
       display: block;
-      animation: revealPitch 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes revealPitch {
-      0% {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     /* Botão Pular Fila (WhatsApp) */
@@ -3432,7 +3418,7 @@
     </section>
 
     <!-- Conteúdo revelado aos 15 segundos -->
-    <div class="delayed-content" id="delayed-content">
+    <div class="delayed-content is-visible" id="delayed-content">
       <div class="video-cta-wrapper" style="margin-bottom: 28px;">
         <a href="#autoridade" class="btn-pular-fila">
           Pular fila
@@ -4479,31 +4465,5 @@
 
 
 
-  <!-- Script de delay do pitch (15 segundos) -->
-  <script>
-    (function() {
-      var DELAY_SECONDS = 15;
-      var el = document.getElementById('delayed-content');
-      if (!el) return;
-
-      function reveal() {
-        if (!el.classList.contains('is-visible')) {
-          el.classList.add('is-visible');
-        }
-      }
-
-      // Timer garantido aos 15 segundos
-      setTimeout(reveal, DELAY_SECONDS * 1000);
-
-      // Eventos de reprodução do VTurb
-      window.addEventListener('message', function(e) {
-        try {
-          var d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-          if (d && (d.currentTime >= DELAY_SECONDS || d.time >= DELAY_SECONDS)) {
-            reveal();
-          }
-        } catch(err) {}
-      });
-    })();
-  </script>
+  <!-- Conteúdo exibido imediatamente (sem delay) -->
 </body></html>
